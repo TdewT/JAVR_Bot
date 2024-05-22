@@ -18,6 +18,8 @@ async def on_ready():
     print(f"{bot.user} is now online!")
     print("--------------------------")
     bot.loop.create_task(connect_nodes())
+    await bot.tree.sync(guild=discord.Object(id=1143475298441113671))
+    print("Commands are now synced!")
 
 
 async def connect_nodes():
@@ -36,6 +38,7 @@ async def load():
             #else:
                 #await bot.load_extension(f"cogs.testing")
                 #print(f"Extension: {filename} has been loaded")
+
 
 
 async def main():

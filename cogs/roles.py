@@ -6,7 +6,9 @@ class Roles(commands.Cog):
         self.bot = bot
         bot.tree.add_command(self.role_modify,guild=discord.Object(id=692802312720089108))
         self.emoji_names = ["squad", "arma3"]
+        self.emoji_ids = [1243605677063274538,1243606971488403590]
         self.role_ids = [1243594369009713163, 903684702500700160]
+        
 
     @discord.app_commands.command(name="role", description="Sends role selection message")
     async def role_modify(self,interaction: discord.Interaction):
@@ -14,6 +16,10 @@ class Roles(commands.Cog):
             <:arma3:1243606971488403590>  - To recieve pings when someone is looking for team to play Arma 3", color=0xFF0080)
         if interaction.channel_id == 1243588381472985179:
             await interaction.response.send_message(embed=emb, ephemeral = False)
+            for i in range(0,len(self.emoji_ids)):
+                em = interaction.user.guild.get_emoji(self.emoji_ids[i])
+                msg = await interaction.original_response()
+                await msg.add_reaction(em)
         else:
             await interaction.response.send_message("Nie można użyć tej komendy na tym kanale", ephemeral = True)    
     
@@ -22,8 +28,6 @@ class Roles(commands.Cog):
         if payload.channel_id==1243588381472985179:
             user = payload.member
             
-            #emoji_names = ["squad", "arma3"]
-            #role_ids = [1243594369009713163, 903684702500700160]
             for i in range(0,len(self.emoji_names)):
                 if payload.emoji.name==self.emoji_names[i]:
                     await user.add_roles(user.guild.get_role(self.role_ids[i]))
@@ -35,12 +39,10 @@ class Roles(commands.Cog):
             guild = discord.utils.find(lambda g : g.id == guild_id, self.bot.guilds)
             user = await guild.fetch_member(payload.user_id)
             
-            #emoji_names = ["squad", "arma3"]
-            #role_ids = [1243594369009713163, 903684702500700160]
             for i in range(0,len(self.emoji_names)):
                 if payload.emoji.name==self.emoji_names[i]:
                     await user.remove_roles(user.guild.get_role(self.role_ids[i]))
+        
                     
-
 async def setup(bot):
     await bot.add_cog(Roles(bot))

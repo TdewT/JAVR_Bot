@@ -29,7 +29,6 @@ async def connect_nodes():
                                         password=os.getenv("lavalink_pass"), client=bot)
     await wavelink.Pool.connect(nodes=[node])
 
-
 async def load():
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):

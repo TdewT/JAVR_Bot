@@ -18,7 +18,8 @@ async def on_ready():
     print(f"{bot.user} is now online!")
     print("--------------------------")
     bot.loop.create_task(connect_nodes())
-    await bot.tree.sync(guild=discord.Object(id=1143475298441113671))
+    await bot.tree.sync(guild=discord.Object(id=692802312720089108))
+    #await bot.tree.sync(guild=discord.Object(id=1143475298441113671))
     print("Commands are now synced!")
 
 

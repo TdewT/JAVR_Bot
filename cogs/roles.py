@@ -5,9 +5,9 @@ class Roles(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         bot.tree.add_command(self.role_modify,guild=discord.Object(id=692802312720089108))
-        self.emoji_names = ["squad", "arma3"]
-        self.emoji_ids = [1243605677063274538,1243606971488403590]
-        self.role_ids = [1243594369009713163, 903684702500700160]
+        # dict construction "emoji_name":[emoji_id, role_id]
+        self.role_info = {"squad":[1243605677063274538,1243594369009713163],"arma3":[1243606971488403590,903684702500700160],"COH2":[1243840205128073286,1243837274349899816],"GTFO":[1243840203869651025,1243837477215670302],\
+            "HD2":[1243840208936374354,1243836841720025228],"Ready_or_Not":[1243840201135095839,1243837361889218570],"cs2":[1243840206722044014,1243837029872308224],"dayz":[1243840207892119572,1243837200299200542],"rocket_league":[1243840202489991168,1243837073895460929]}
         
 
     @discord.app_commands.command(name="role", description="Sends role selection message")
@@ -16,8 +16,8 @@ class Roles(commands.Cog):
             <:arma3:1243606971488403590>  - To recieve pings when someone is looking for team to play Arma 3", color=0xFF0080)
         if interaction.channel_id == 1243588381472985179:
             await interaction.response.send_message(embed=emb, ephemeral = False)
-            for i in range(0,len(self.emoji_ids)):
-                em = interaction.user.guild.get_emoji(self.emoji_ids[i])
+            for id in self.role_info.values():
+                em = interaction.user.guild.get_emoji(id[0])
                 msg = await interaction.original_response()
                 await msg.add_reaction(em)
         else:
@@ -26,11 +26,10 @@ class Roles(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.channel_id==1243588381472985179:
-            user = payload.member
+            user = payload.member      
+            emo_id = self.role_info.get(payload.emoji.name)
+            await user.add_roles(user.guild.get_role(emo_id[1]))
             
-            for i in range(0,len(self.emoji_names)):
-                if payload.emoji.name==self.emoji_names[i]:
-                    await user.add_roles(user.guild.get_role(self.role_ids[i]))
   
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
@@ -39,9 +38,8 @@ class Roles(commands.Cog):
             guild = discord.utils.find(lambda g : g.id == guild_id, self.bot.guilds)
             user = await guild.fetch_member(payload.user_id)
             
-            for i in range(0,len(self.emoji_names)):
-                if payload.emoji.name==self.emoji_names[i]:
-                    await user.remove_roles(user.guild.get_role(self.role_ids[i]))
+            role_id = self.role_info.get(payload.emoji.name)
+            await user.remove_roles(user.guild.get_role(role_id[1]))
         
                     
 async def setup(bot):

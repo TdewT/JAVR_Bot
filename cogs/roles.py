@@ -12,8 +12,15 @@ class Roles(commands.Cog):
 
     @discord.app_commands.command(name="role", description="Sends role selection message")
     async def role_modify(self,interaction: discord.Interaction):
-        emb = discord.Embed(title="Wybierz jedną z poniższych Emoji aby otrzymać rolę: ", description="<:squad:1243605677063274538>  - To recieve pings when someone is looking for team to play Squad \n\
-            <:arma3:1243606971488403590>  - To recieve pings when someone is looking for team to play Arma 3", color=0xFF0080)
+        emb = discord.Embed(title="Wybierz jedną z poniższych Emoji aby otrzymać rolę: ", description="<:squad:1243605677063274538>  - Squad \n\
+            <:arma3:1243606971488403590>  - Arma 3 \n\
+            <:COH2:1243840205128073286>  - Company of Heroes 2 \n\
+            <:GTFO:1243840203869651025>  - GTFO \n\
+            <:HD2:1243840208936374354>  - HELLDIVEDS 2 \n\
+            <:Ready_or_Not:1243840201135095839>  - Ready or Not \n\
+            <:cs2:1243840206722044014>  - Counter Strike 2 \n\
+            <:dayz:1243840207892119572>  - DayZ \n\
+            <:rocket_league:1243840202489991168>  - Rocket League", color=0xFF0080)
         if interaction.channel_id == 1243588381472985179:
             await interaction.response.send_message(embed=emb, ephemeral = False)
             for id in self.role_info.values():

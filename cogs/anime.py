@@ -4,12 +4,13 @@ import mal
 
 class Anime(commands.Cog):
     
-    def __init__(self,client):
-        self.client = client
+    def __init__(self,bot):
+        self.bot = bot
+        bot.tree.add_command(self.anime,guild=discord.Object(id=692802312720089108))
         
     
-    @commands.hybrid_command()
-    async def anime(self, ctx, anime, page = 0):
+    @discord.app_commands.command(name= "anime", description="Search for anime")
+    async def anime(self,interaction: discord.Interaction, anime:str, page:int = 0):
         
         search = mal.AnimeSearch(anime)
         
@@ -25,8 +26,8 @@ class Anime(commands.Cog):
         
         embed = discord.Embed(title=f"Found anime for: {anime}", description= desc)
         print("sending embed")
-        await ctx.channel.purge(limit = 1)
-        msg = await ctx.send(embed=embed)
+        await interaction.channel.purge(limit = 1)
+        msg = await interaction.send(embed=embed)
         
         #Buttons for anime selection
         await msg.add_reaction('1️⃣')
@@ -39,23 +40,21 @@ class Anime(commands.Cog):
         reaction, user = await self.client.wait_for("reaction_add",timeout = 30.0)
         
         if str(reaction.emoji) == '1️⃣':
-            await show_anime(self,ctx,result[0].mal_id)
+            await show_anime(self,interaction,result[0].mal_id)
         if str(reaction.emoji) == '2️⃣':
-            await show_anime(self,ctx,result[1].mal_id)
+            await show_anime(self,interaction,result[1].mal_id)
         if str(reaction.emoji) == '3️⃣':
-            await show_anime(self,ctx,result[2].mal_id)
+            await show_anime(self,interaction,result[2].mal_id)
         if str(reaction.emoji) == '4️⃣':    
-            await show_anime(self,ctx,result[3].mal_id)
+            await show_anime(self,interaction,result[3].mal_id)
         if str(reaction.emoji) == '5️⃣':
-            await show_anime(self,ctx,result[4].mal_id)
+            await show_anime(self,interaction,result[4].mal_id)
             
-        
-        
-        
+            
 #TODO SHOW GENERES       
-#Show anime for showing selected anime 
-async def show_anime(self,ctx,id_anime):
-    await ctx.channel.purge(limit = 1)
+#Show anime for selected anime 
+async def show_anime(self,interaction,id_anime):
+    await interaction.channel.purge(limit = 1)
     
     anime = mal.Anime(id_anime)
     
@@ -65,10 +64,9 @@ async def show_anime(self,ctx,id_anime):
     embed.add_field(name="Score", value=anime.score, inline=True)
     embed.add_field(name="Episodes", value=anime.episodes, inline=True)
     embed.add_field(name="Status", value=anime.status, inline=True)
-    await ctx.send(embed=embed)
+    await interaction.send(embed=embed)
     
     
-        
     
 async def setup(client):
     await client.add_cog(Anime(client))

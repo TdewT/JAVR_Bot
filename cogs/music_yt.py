@@ -20,6 +20,9 @@ class Music_YT(commands.Cog):
             if not interaction.guild.voice_client:
                 vc: wavelink.Player = await interaction.user.voice.channel.connect(cls=wavelink.Player, self_deaf=True)
                 await vc.set_volume(100)
+            elif interaction.guild.voice_client.channel != interaction.user.voice.channel:
+                vc: wavelink.Player = interaction.client.voice_clients[0]
+                await vc.move_to(interaction.user.voice.channel)
             else:
                 vc: wavelink.Player = interaction.client.voice_clients[0]
             if vc.playing:

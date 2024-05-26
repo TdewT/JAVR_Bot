@@ -14,19 +14,19 @@ class Music_YT(commands.Cog):
         bot.tree.add_command(self.resume,guild=discord.Object(id=692802312720089108))
 
     @discord.app_commands.command(name="play", description="Add track to queue")
-    async def play(self,interaction: discord.Interaction, search: str):
-        track = await wavelink.Playable.search(search)
+    async def play(self,interaction: discord.Interaction, name: str):
+        track = await wavelink.Playable.search(name)
         if interaction.user.voice.channel:
             if not interaction.guild.voice_client:
                 vc: wavelink.Player = await interaction.user.voice.channel.connect(cls=wavelink.Player, self_deaf=True)
                 await vc.set_volume(100)
             else:
                 vc: wavelink.Player = interaction.client.voice_clients[0]
-            await interaction.response.send_message(f"Now playing {track[0]}", ephemeral=True)
             if vc.playing:
                 await vc.queue.put(track[0])
             else:
                 await vc.play(track=track[0])
+                await interaction.response.send_message(f"Now playing {track[0]}", ephemeral=True)
         else:
             await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
             
@@ -34,27 +34,28 @@ class Music_YT(commands.Cog):
     async def leave(self, interaction: discord.Interaction):
         if interaction.user.voice.channel == interaction.client.voice_clients[0].channel: 
             vc: wavelink.Player = interaction.client.voice_clients[0]
-            await interaction.response.send_message("I have left the channel", ephemeral=True)
             await vc.disconnect()
+            await interaction.response.send_message("I have left the channel", ephemeral=True)
     
     @discord.app_commands.command(name="stop", description="Stop current track")
     async def stop(self, interaction: discord.Interaction):
         vc: wavelink.Player = interaction.client.voice_clients[0]
-        await interaction.response.send_message("Stopped the music",ephemeral=True)
         await vc.stop()
+        await interaction.response.send_message("Stopped the music",ephemeral=True)
         
     @discord.app_commands.command(name="skip", description="Skip current track")
     async def skip(self, interaction: discord.Interaction):
         vc: wavelink.Player = interaction.client.voice_clients[0]
-        await interaction.response.send_message("Skipped to next track", ephemeral=True)
+        
         await vc.skip()
+        await interaction.response.send_message("Skipped to next track", ephemeral=True)
         
     @discord.app_commands.command(name="pause",description="Pause current track")
     async def pause(self, interaction: discord.Interaction):
         vc: wavelink.Player = interaction.client.voice_clients[0]
         if not vc.paused:
+            await vc.pause(True)
             await interaction.response.send_message("Paused current track", ephemeral=True)
-            vc.pause()
         else:
             await interaction.response.send_message("Track is already paused", ephemeral=True) 
             
@@ -62,8 +63,8 @@ class Music_YT(commands.Cog):
     async def resume(self, interaction: discord.Interaction):
         vc: wavelink.Player = interaction.client.voice_clients[0]
         if vc.paused:
+            await vc.pause(False)
             await interaction.response.send_message("Resumed current track", ephemeral=True)
-            vc.pause(False)
         else:
             await interaction.response.send_message("Track is not paused", ephemeral=True)  
         

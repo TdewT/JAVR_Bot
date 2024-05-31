@@ -161,13 +161,19 @@ class Music_YT(commands.Cog):
             await interaction.response.send_message(f"Your queue is: {vc.queue}", ephemeral=True)
         else:
             await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
-            
+    
+    # Activates when track starts playing        
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, payload: wavelink.TrackStartEventPayload):
         # Get the channel by ID
         bot_txt_channel =  self.bot.get_channel(875521178524065792)
         # Send a message with the title of currently playing track
         await bot_txt_channel.send(f"Now playing: {payload.track}")
+    
+    # Activates when Player is inactive for too long    
+    @commands.Cog.listener()
+    async def on_wavelink_inactive_player(self,player: wavelink.Player):
+        await player.disconnect()
 
 async def setup(bot):
     await bot.add_cog(Music_YT(bot))

@@ -25,7 +25,7 @@ async def on_ready():
 async def connect_nodes():
     await bot.wait_until_ready()
     node: wavelink.Node = wavelink.Node(identifier='JAVR_Argentino', uri='http://localhost:2333',
-                                        password=os.getenv("LAVALINK_PASS"), client=bot)
+                                        password=os.getenv("LAVALINK_PASS"), client=bot, inactive_player_timeout=300)
     await wavelink.Pool.connect(nodes=[node])
 
 async def load():

@@ -26,20 +26,21 @@ class Music_YT(commands.Cog):
     async def play(self,interaction: discord.Interaction, youtube: str = None, spotify: str = None):
         if youtube != None:
             query: wavelink.Search = await wavelink.Playable.search(youtube)
+        elif spotify != None:
+            query: wavelink.Search = await wavelink.Playable.search(spotify, source="spsearch")
         else:
             query = None
-            
+           
         if interaction.user.voice.channel:       
             vc = await self.player_join(interaction.user, interaction.guild, interaction.client)
-                
-            if isinstance(query, wavelink.tracks.Playlist):
-                added: int = await vc.queue.put_wait(query)
-            elif not query:
-                pass
-            else:
-                track: wavelink.Playable = query[0]
-                await vc.queue.put_wait(track)
-                added = 1
+            
+            if query:
+                if isinstance(query, wavelink.tracks.Playlist):
+                    added: int = await vc.queue.put_wait(query)
+                else:
+                    track: wavelink.Playable = query[0]
+                    await vc.queue.put_wait(track)
+                    added = 1
                 
             if not vc.playing:
                 await vc.play(vc.queue.get())

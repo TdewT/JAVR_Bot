@@ -6,47 +6,45 @@ import wavelink
 class Music_YT(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        bot.tree.add_command(self.play,guild=discord.Object(id=692802312720089108))
-        bot.tree.add_command(self.leave,guild=discord.Object(id=692802312720089108))
-        bot.tree.add_command(self.stop,guild=discord.Object(id=692802312720089108))
-        bot.tree.add_command(self.skip,guild=discord.Object(id=692802312720089108))
-        bot.tree.add_command(self.pause,guild=discord.Object(id=692802312720089108))
-        bot.tree.add_command(self.resume,guild=discord.Object(id=692802312720089108))
-        bot.tree.add_command(self.clear,guild=discord.Object(id=692802312720089108))
-        bot.tree.add_command(self.queue,guild=discord.Object(id=692802312720089108))
+        commands = [self.play, self.leave, self.stop, self.skip, self.pause, self.resume, self.clear, self.queue]
+        for command in commands:
+            bot.tree.add_command(command, guild=discord.Object(id=692802312720089108))
+            
+    async def player_join(self, user, guild, client):
+        if not guild.voice_client:
+            vc: wavelink.Player = await user.voice.channel.connect(cls=wavelink.Player, self_deaf=True)
+            await vc.set_volume(100)
+        elif guild.voice_client.channel != user.voice.channel:
+            vc: wavelink.Player = client.voice_clients[0]
+            await vc.move_to(user.voice.channel)
+        else:
+            vc: wavelink.Player = client.voice_clients[0]
+        return vc
+                
 
-
-    @discord.app_commands.command(name="play", description="Add track to queue")
-    async def play(self,interaction: discord.Interaction, youtube: str = None):#, spotify: str = None):
+    @discord.app_commands.command(name="play", description="Add track to queue") #TODO make messages in similiar style to other bots
+    async def play(self,interaction: discord.Interaction, youtube: str = None, spotify: str = None):
         if youtube != None:
             query: wavelink.Search = await wavelink.Playable.search(youtube)
+        else:
+            query = None
             
-        if interaction.user.voice.channel:
-            if not interaction.guild.voice_client:
-                vc: wavelink.Player = await interaction.user.voice.channel.connect(cls=wavelink.Player, self_deaf=True)
-                await vc.set_volume(100)
-            elif interaction.guild.voice_client.channel != interaction.user.voice.channel:
-                vc: wavelink.Player = interaction.client.voice_clients[0]
-                await vc.move_to(interaction.user.voice.channel)
-            else:
-                vc: wavelink.Player = interaction.client.voice_clients[0]
+        if interaction.user.voice.channel:       
+            vc = await self.player_join(interaction.user, interaction.guild, interaction.client)
                 
             if isinstance(query, wavelink.tracks.Playlist):
                 added: int = await vc.queue.put_wait(query)
+            elif not query:
+                pass
             else:
                 track: wavelink.Playable = query[0]
                 await vc.queue.put_wait(track)
                 added = 1
                 
             if not vc.playing:
-                if vc.queue.is_empty:
-                    to_play = track
-                else:
-                    to_play = vc.queue.get()
-                await vc.play(to_play)
-                await interaction.response.send_message(f"Now playing {to_play}", ephemeral=True)
+                await vc.play(vc.queue.get())
             else:
-                await interaction.response.send_message(f"Added {added} tracks to the queue")
+                await interaction.response.send_message(f"Added {added} tracks to the queue",ephemeral=True)
         else:
             await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
             
@@ -83,8 +81,12 @@ class Music_YT(commands.Cog):
         if interaction.user.voice.channel == interaction.client.voice_clients[0].channel: 
             vc: wavelink.Player = interaction.client.voice_clients[0]
 
-            await vc.skip()
-            await interaction.response.send_message("Skipped to next track", ephemeral=True)
+            await vc.stop()
+            if not vc.queue.is_empty:
+                await vc.play(vc.queue.get())
+                await interaction.response.send_message("Skipped to next track", ephemeral=True)
+            else:
+                await interaction.response.send_message("There's nothing left in the queue")
         else:
             await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
         
@@ -119,6 +121,12 @@ class Music_YT(commands.Cog):
             await interaction.response.send_message(f"Your queue is: {vc.queue}", ephemeral=True)
         else:
             await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
+            
+    @commands.Cog.listener()
+    async def on_wavelink_track_start(self, payload: wavelink.TrackStartEventPayload):
+        bot_txt_channel =  self.bot.get_channel(875521178524065792)
+        
+        await bot_txt_channel.send(f"Now playing: {payload.track}")
 
 async def setup(bot):
     await bot.add_cog(Music_YT(bot))

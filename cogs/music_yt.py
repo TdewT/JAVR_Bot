@@ -26,8 +26,14 @@ class Music_YT(commands.Cog):
             # If the bot is alredy on user's channel, define Player as the previously created one
             vc: wavelink.Player = client.voice_clients[0]
         return vc
+    
+    # Create embed containing tracks form the queue
+    def create_queue_embed(self, queue):
+        queue_list = "\n".join([f"{song.title} - {(song.length // 60000)}:{(song.length // 1000) % 60:02}" for song in queue[:5]])
+        filler = "nothing"
+        emb = discord.Embed(title = "Music Queue", description = f"🎵 **Next Up:**\n{queue_list}\nAnd {len(queue)-5 if len(queue)-5 > 0 else filler} more.")
+        return emb
                 
-
     @discord.app_commands.command(name="play", description="Add track to queue") #TODO make messages in similiar style to other bots
     async def play(self,interaction: discord.Interaction, youtube: str = None, spotify: str = None):
         # Checi if user used search for YouTube or Spotify
@@ -152,13 +158,16 @@ class Music_YT(commands.Cog):
             await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
             
     @discord.app_commands.command(name="queue",description="Display queue content")
-    async def queue(self, interaction: discord.Interaction): #TODO fix queue display
+    async def queue(self, interaction: discord.Interaction):
         # Check if user is in the same channel as bot
         if interaction.user.voice.channel == interaction.client.voice_clients[0].channel:
             # If user in in the same channel, define Player as previously created one
             vc: wavelink.Player = interaction.client.voice_clients[0]
-            # Send a message with queue contents
-            await interaction.response.send_message(f"Your queue is: {vc.queue}", ephemeral=True)
+            # Check if the queue is empty and create an embed with queue contents
+            if not vc.queue.is_empty:
+                emb = self.create_queue_embed(vc.queue)
+                # Send a message with created embed
+                await interaction.response.send_message(embed=emb, ephemeral=False)
         else:
             await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
     

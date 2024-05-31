@@ -19,14 +19,13 @@ async def on_ready():
     print("--------------------------")
     bot.loop.create_task(connect_nodes())
     await bot.tree.sync(guild=discord.Object(id=692802312720089108))
-    #await bot.tree.sync(guild=discord.Object(id=1143475298441113671))
     print("Commands are now synced!")
 
 
 async def connect_nodes():
     await bot.wait_until_ready()
     node: wavelink.Node = wavelink.Node(identifier='JAVR_Argentino', uri='http://localhost:2333',
-                                        password=os.getenv("lavalink_pass"), client=bot)
+                                        password=os.getenv("LAVALINK_PASS"), client=bot)
     await wavelink.Pool.connect(nodes=[node])
 
 async def load():
@@ -35,9 +34,6 @@ async def load():
             if filename[:-3] != "testing":
                 await bot.load_extension(f"cogs.{filename[:-3]}")
                 print(f"Extension: {filename} has been loaded")
-            #else:
-                #await bot.load_extension(f"cogs.testing")
-                #print(f"Extension: {filename} has been loaded")
 
 
 

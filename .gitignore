@@ -309,5 +309,4 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,visualstudiocode,python
 
 # Place for custom ruless
-LavaSrcConfig.kt
-application.yml
+

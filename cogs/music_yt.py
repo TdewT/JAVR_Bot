@@ -30,8 +30,7 @@ class Music_YT(commands.Cog):
     # Create embed containing tracks form the queue
     def create_queue_embed(self, queue):
         queue_list = "\n".join([f"{song.title} - {(song.length // 60000)}:{(song.length // 1000) % 60:02}" for song in queue[:5]])
-        filler = "nothing"
-        emb = discord.Embed(title = "Music Queue", description = f"🎵 **Next Up:**\n{queue_list}\nAnd {len(queue)-5 if len(queue)-5 > 0 else filler} more.")
+        emb = discord.Embed(title = "Music Queue", description = f"🎵 **Next Up:**\n{queue_list}\nAnd {len(queue)-5 if len(queue)-5 > 0 else 'nothing'} more.")
         return emb
                 
     @discord.app_commands.command(name="play", description="Add track to queue") #TODO make messages in similiar style to other bots
@@ -61,13 +60,14 @@ class Music_YT(commands.Cog):
                     track: wavelink.Playable = query[0]
                     await vc.queue.put_wait(track)
                     added = 1
+                    
             # Check if the Player is currently playing music    
             if not vc.playing:
                 # If Player is not playing, play first track from the queue
                 await vc.play(vc.queue.get())
-            else:
-                # Send message that says how many tracks were added to the queue
-                await interaction.response.send_message(f"Added {added} tracks to the queue",ephemeral=True)
+                
+            # Send message that says how many tracks were added to the queue
+            await interaction.response.send_message(f"Added {added} tracks to the queue",ephemeral=False)
         else:
             # Send message that informs user he's not connected to the voice channel
             await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
@@ -90,7 +90,7 @@ class Music_YT(commands.Cog):
             # If user in in the same channel, define Player as previously created one, and stop the current track
             vc: wavelink.Player = interaction.client.voice_clients[0]
             await vc.stop()
-            await interaction.response.send_message("Stopped the music",ephemeral=True)
+            await interaction.response.send_message("Stopped the music",ephemeral=False)
         else:
             await interaction.response.send_message("You are not in my voice channel", ephemeral=True)
             
@@ -102,10 +102,10 @@ class Music_YT(commands.Cog):
             vc: wavelink.Player = interaction.client.voice_clients[0]
             # Check if the queue is empty, If not clear it's contents
             if not vc.queue.is_empty:
-                await vc.queue.clear()
                 await interaction.response.send_message("Queue has been cleared")
+                await vc.queue.clear()
             else:
-                interaction.response.send_message("Your queue is empty")
+                await interaction.response.send_message("Your queue is empty")
         else:
             await interaction.response.send_message("You are not in my voice channel", ephemeral=True)
         
@@ -121,7 +121,7 @@ class Music_YT(commands.Cog):
             if not vc.queue.is_empty:
                 # If the queue is not empty, play next track
                 await vc.play(vc.queue.get())
-                await interaction.response.send_message("Skipped to next track", ephemeral=True)
+                await interaction.response.send_message("Skipped to next track", ephemeral=False)
             else:
                 await interaction.response.send_message("There's nothing left in the queue")
         else:
@@ -137,7 +137,7 @@ class Music_YT(commands.Cog):
             if not vc.paused:
                 # If Player is not paused, pause the current track
                 await vc.pause(True)
-                await interaction.response.send_message("Paused current track", ephemeral=True)
+                await interaction.response.send_message("Paused current track", ephemeral=False)
             else:
                 await interaction.response.send_message("Track is already paused", ephemeral=True) 
         else:
@@ -153,7 +153,7 @@ class Music_YT(commands.Cog):
             if vc.paused:
                 # If Player is paused, resume paused track
                 await vc.pause(False)
-                await interaction.response.send_message("Resumed current track", ephemeral=True)
+                await interaction.response.send_message("Resumed current track", ephemeral=False)
             else:
                 await interaction.response.send_message("Track is not paused", ephemeral=True) 
         else:

@@ -310,4 +310,5 @@ pyrightconfig.json
 
 # Place for custom ruless
 logs/*
+test/*
 

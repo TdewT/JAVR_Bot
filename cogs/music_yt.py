@@ -38,10 +38,10 @@ class Music_YT(commands.Cog):
     async def play(self,interaction: discord.Interaction, search: str = None):
         # Check if user used search for YouTube or Spotify
         if "spotify" in search:
-            # Make query based on YouTube search/shared link
+            # Make query based on Spotify shared link
             query: wavelink.Search = await wavelink.Playable.search(search, source="spsearch")
         elif search != None:
-            # Make query based on Spotify shared link
+            # Make query based on Youtube search/shared link
             query: wavelink.Search = await wavelink.Playable.search(search)
         else:
             query = None
@@ -53,7 +53,7 @@ class Music_YT(commands.Cog):
             
             # Check if query is empty
             if query:
-                # If query is a Playlist add all track to the queue
+                # If query is a Playlist add all tracks to the queue
                 if isinstance(query, wavelink.tracks.Playlist):
                     added: int = await vc.queue.put_wait(query)
                 # If query is not a Playlist add first result found by search to the queue
@@ -66,7 +66,7 @@ class Music_YT(commands.Cog):
                 # If Player is not playing, play first track from the queue
                 await vc.play(vc.queue.get())
             else:
-                # Send message that says how many track were added to the queue
+                # Send message that says how many tracks were added to the queue
                 await interaction.response.send_message(f"Added {added} tracks to the queue",ephemeral=True)
         else:
             # Send message that informs user he's not connected to the voice channel

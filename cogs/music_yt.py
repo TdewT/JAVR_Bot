@@ -35,14 +35,14 @@ class Music_YT(commands.Cog):
         return emb
                 
     @discord.app_commands.command(name="play", description="Add track to queue") #TODO make messages in similiar style to other bots
-    async def play(self,interaction: discord.Interaction, youtube: str = None, spotify: str = None):
-        # Checi if user used search for YouTube or Spotify
-        if youtube != None:
+    async def play(self,interaction: discord.Interaction, search: str = None):
+        # Check if user used search for YouTube or Spotify
+        if "spotify" in search:
             # Make query based on YouTube search/shared link
-            query: wavelink.Search = await wavelink.Playable.search(youtube)
-        elif spotify != None:
+            query: wavelink.Search = await wavelink.Playable.search(search, source="spsearch")
+        elif search != None:
             # Make query based on Spotify shared link
-            query: wavelink.Search = await wavelink.Playable.search(spotify, source="spsearch")
+            query: wavelink.Search = await wavelink.Playable.search(search)
         else:
             query = None
         
@@ -103,7 +103,9 @@ class Music_YT(commands.Cog):
             # Check if the queue is empty, If not clear it's contents
             if not vc.queue.is_empty:
                 await vc.queue.clear()
-            await interaction.response.send_message("Queue has been cleared")
+                await interaction.response.send_message("Queue has been cleared")
+            else:
+                interaction.response.send_message("Your queue is empty")
         else:
             await interaction.response.send_message("You are not in my voice channel", ephemeral=True)
         
@@ -168,6 +170,8 @@ class Music_YT(commands.Cog):
                 emb = self.create_queue_embed(vc.queue)
                 # Send a message with created embed
                 await interaction.response.send_message(embed=emb, ephemeral=False)
+            else:
+                await interaction.response.send_message("Your queue is empty")
         else:
             await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
     

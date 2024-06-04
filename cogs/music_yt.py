@@ -13,7 +13,7 @@ class Music(commands.Cog):
             bot.tree.add_command(
                 command, guild=discord.Object(id=692802312720089108))
 
-    async def player_join(self, user, guild, client):
+    async def player_join(user, guild, client):
         # Check if bot is already connected
         if not guild.voice_client:
             # If bot is not connected to any channel, define new Player and join user's channel
@@ -30,7 +30,8 @@ class Music(commands.Cog):
         return vc
 
     # Create embed containing tracks form the queue
-    def create_queue_embed(self, queue):
+    @staticmethod
+    def create_queue_embed(queue):
         queue_list = "\n".join([f"{song.title} - {(song.length // 60000)}:{
                                (song.length // 1000) % 60:02}" for song in queue[:5]])
 
@@ -40,7 +41,8 @@ class Music(commands.Cog):
         emb = discord.Embed(title="Music Queue", description=desc)
         return emb
 
-    def check_channel(self, user, client):
+    @staticmethod
+    def check_channel(user, client):
         if user.voice.channel == client.voice_clients[0].channel:
             # If user is in the same channel, define Player as previously created one, and disconnect from the channel
             vc = client.voice_clients[0]
@@ -63,7 +65,7 @@ class Music(commands.Cog):
         # Check if user is in a voice channel
         if interaction.user.voice.channel:
             # Run function to define Player and connect him to user's channel
-            vc = await self.player_join(interaction.user, interaction.guild, interaction.client)
+            vc = await Music.player_join(interaction.user, interaction.guild, interaction.client)
 
             # Check if query is empty
             if query:
@@ -97,7 +99,9 @@ class Music(commands.Cog):
     @discord.app_commands.command(name="leave", description="Make the bot leave your channel")
     async def leave(self, interaction: discord.Interaction):
         # Run function to check if user is in the same channel as bot
-        vc = self.check_channel(interaction.user, interaction.client)
+        print("t1")
+        vc = Music.check_channel(interaction.user, interaction.client)
+        print("t2")
         if vc:
             # If user is in the same channel, define Player as previously created one, and disconnect from the channel
             await vc.disconnect()
@@ -108,7 +112,7 @@ class Music(commands.Cog):
     @discord.app_commands.command(name="stop", description="Stop current track")
     async def stop(self, interaction: discord.Interaction):
         # Check if user is in the same channel as bot
-        vc = self.check_channel(interaction.user, interaction.client)
+        vc = Music.check_channel(interaction.user, interaction.client)
         if vc:
             await vc.stop()
             await interaction.response.send_message("Stopped the music", ephemeral=False)
@@ -118,7 +122,7 @@ class Music(commands.Cog):
     @discord.app_commands.command(name="clear", description="Clear the queue")
     async def clear(self, interaction: discord.Interaction):
         # Run function to check if user is in the same channel as bot
-        vc = self.check_channel(interaction.user, interaction.client)
+        vc = Music.check_channel(interaction.user, interaction.client)
         if vc:
             # Check if the queue is empty, If not clear its contents
             if not vc.queue.is_empty:
@@ -132,7 +136,7 @@ class Music(commands.Cog):
     @discord.app_commands.command(name="skip", description="Skip current track")
     async def skip(self, interaction: discord.Interaction):
         # Run function to check if user is in the same channel as bot
-        vc = self.check_channel(interaction.user, interaction.client)
+        vc = Music.check_channel(interaction.user, interaction.client)
         if vc:
             await vc.stop()
             # Check if the queue is empty
@@ -148,7 +152,7 @@ class Music(commands.Cog):
     @discord.app_commands.command(name="pause", description="Pause current track")
     async def pause(self, interaction: discord.Interaction):
         # Run function to check if user is in the same channel as bot
-        vc = self.check_channel(interaction.user, interaction.client)
+        vc = Music.check_channel(interaction.user, interaction.client)
         if vc:
             # Check if Player is paused
             if not vc.paused:
@@ -163,7 +167,7 @@ class Music(commands.Cog):
     @discord.app_commands.command(name="resume", description="Resumes current track")
     async def resume(self, interaction: discord.Interaction):
         # Run function to check if user is in the same channel as bot
-        vc = self.check_channel(interaction.user, interaction.client)
+        vc = Music.check_channel(interaction.user, interaction.client)
         if vc:
             # Check if Player is paused
             if vc.paused:
@@ -178,11 +182,11 @@ class Music(commands.Cog):
     @discord.app_commands.command(name="queue", description="Display queue content")
     async def queue(self, interaction: discord.Interaction):
         # Run function to check if user is in the same channel as bot
-        vc = self.check_channel(interaction.user, interaction.client)
+        vc = Music.check_channel(interaction.user, interaction.client)
         if vc:
             # Check if the queue is empty and create an embed with queue contents
             if not vc.queue.is_empty:
-                emb = self.create_queue_embed(vc.queue)
+                emb = Music.create_queue_embed(vc.queue)
                 # Send a message with created embed
                 await interaction.response.send_message(embed=emb, ephemeral=False)
             else:

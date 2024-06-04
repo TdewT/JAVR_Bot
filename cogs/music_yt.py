@@ -48,7 +48,7 @@ class Music(commands.Cog):
             vc = client.voice_clients[0]
             return vc
         else:
-            return False
+            return None
 
     # TODO make messages in similar style to other bots
     @discord.app_commands.command(name="play", description="Add track to queue")

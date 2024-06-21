@@ -55,7 +55,9 @@ class Music(commands.Cog):
     @discord.app_commands.command(name="play", description="Add track to queue")
     async def play(self, interaction: discord.Interaction, search: str = None):
         # Check if user used search for YouTube or Spotify
-        if "spotify" in search:
+        if not search:
+            query = None
+        elif "spotify" in search:
             # Make query based on Spotify shared link
             query: wavelink.Search = await wavelink.Playable.search(search, source="spsearch")
         else:
@@ -65,7 +67,6 @@ class Music(commands.Cog):
         if interaction.user.voice.channel:
             # Run function to define Player and connect him to user's channel
             vc = await Music.player_join(interaction.user, interaction.guild, interaction.client)
-
             # Check if query is empty
             if query and search:
                 # If query is a Playlist add all tracks to the queue
@@ -76,10 +77,12 @@ class Music(commands.Cog):
                     track: wavelink.Playable = query[0]
                     await vc.queue.put_wait(track)
                     added = 1
-            elif search:
+            elif search and not query:
                 added = None
                 await interaction.response.send_message("Couldn't find the song", ephemeral=False)
-            else:
+            elif not query:
+                if not vc.queue.is_empty:
+                    await interaction.response.send_message("Playing first song from the queue")
                 added = None
 
             # Check if the Player is currently playing music

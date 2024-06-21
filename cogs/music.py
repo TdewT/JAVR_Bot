@@ -6,6 +6,7 @@ import wavelink
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.stopped = False
         # Load commands for bot to use on a server that was specified by ID
         commands = [self.play, self.leave, self.stop, self.skip,
                     self.pause, self.resume, self.clear, self.queue]
@@ -54,9 +55,7 @@ class Music(commands.Cog):
     @discord.app_commands.command(name="play", description="Add track to queue")
     async def play(self, interaction: discord.Interaction, search: str = None):
         # Check if user used search for YouTube or Spotify
-        if search is None:
-            query = None
-        elif "spotify" in search:
+        if "spotify" in search:
             # Make query based on Spotify shared link
             query: wavelink.Search = await wavelink.Playable.search(search, source="spsearch")
         else:
@@ -68,7 +67,7 @@ class Music(commands.Cog):
             vc = await Music.player_join(interaction.user, interaction.guild, interaction.client)
 
             # Check if query is empty
-            if query:
+            if query and search:
                 # If query is a Playlist add all tracks to the queue
                 if isinstance(query, wavelink.tracks.Playlist):
                     added: int = await vc.queue.put_wait(query)
@@ -77,8 +76,12 @@ class Music(commands.Cog):
                     track: wavelink.Playable = query[0]
                     await vc.queue.put_wait(track)
                     added = 1
+            elif search:
+                added = None
+                await interaction.response.send_message("Couldn't find the song", ephemeral=False)
             else:
                 added = None
+
             # Check if the Player is currently playing music
             if not vc.playing:
                 # If Player is not playing, play first track from the queue
@@ -99,9 +102,7 @@ class Music(commands.Cog):
     @discord.app_commands.command(name="leave", description="Make the bot leave your channel")
     async def leave(self, interaction: discord.Interaction):
         # Run function to check if user is in the same channel as bot
-        print("t1")
         vc = Music.check_channel(interaction.user, interaction.client)
-        print("t2")
         if vc:
             # If user is in the same channel, define Player as previously created one, and disconnect from the channel
             await vc.disconnect()
@@ -114,6 +115,7 @@ class Music(commands.Cog):
         # Check if user is in the same channel as bot
         vc = Music.check_channel(interaction.user, interaction.client)
         if vc:
+            self.stopped = True
             await vc.stop()
             await interaction.response.send_message("Stopped the music", ephemeral=False)
         else:
@@ -142,7 +144,7 @@ class Music(commands.Cog):
             # Check if the queue is empty
             if not vc.queue.is_empty:
                 # If the queue is not empty, play next track
-                await vc.play(vc.queue.get())
+                # await vc.play(vc.queue.get())
                 await interaction.response.send_message("Skipped to next track", ephemeral=False)
             else:
                 await interaction.response.send_message("There's nothing left in the queue")
@@ -179,6 +181,7 @@ class Music(commands.Cog):
         else:
             await interaction.response.send_message("You are not in a voice channel", ephemeral=True)
 
+    # TODO command doesn't work if the bot is not on the channel
     @discord.app_commands.command(name="queue", description="Display queue content")
     async def queue(self, interaction: discord.Interaction):
         # Run function to check if user is in the same channel as bot
@@ -201,6 +204,15 @@ class Music(commands.Cog):
         bot_txt_channel = self.bot.get_channel(875521178524065792)
         # Send a message with the title of currently playing track
         await bot_txt_channel.send(f"Now playing: {payload.track}")
+
+    # Activates when track ends
+    @commands.Cog.listener()
+    async def on_wavelink_track_end(self, payload: wavelink.TrackEndEventPayload):
+        if not self.stopped:
+            vc = payload.player
+            await vc.play(vc.queue.get())
+        else:
+            self.stopped = False
 
     # Activates when Player is inactive for too long
     @commands.Cog.listener()

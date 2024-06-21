@@ -67,7 +67,7 @@ class Music(commands.Cog):
         if interaction.user.voice.channel:
             # Run function to define Player and connect him to user's channel
             vc = await Music.player_join(interaction.user, interaction.guild, interaction.client)
-            # Check if query is empty
+            # Check if query and search are empty
             if query and search:
                 # If query is a Playlist add all tracks to the queue
                 if isinstance(query, wavelink.tracks.Playlist):
@@ -77,9 +77,11 @@ class Music(commands.Cog):
                     track: wavelink.Playable = query[0]
                     await vc.queue.put_wait(track)
                     added = 1
+                # If the search couldn't find the track send a response
             elif search and not query:
                 added = None
                 await interaction.response.send_message("Couldn't find the song", ephemeral=False)
+                # If the query is empty play the first song from the queue and send response
             elif not query:
                 if not vc.queue.is_empty:
                     await interaction.response.send_message("Playing first song from the queue")
